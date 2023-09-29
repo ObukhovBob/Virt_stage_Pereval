@@ -1,6 +1,7 @@
 from django.db import models
 from .sources import STATUS, LEVEL
 
+
 class Users(models.Model):
     first_name = models.CharField(max_length=15, verbose_name='Имя')
     middle_name = models.CharField(max_length=20, verbose_name='Отчество')
@@ -15,7 +16,8 @@ class Users(models.Model):
     def __str__(self):
         return f'{self.last_name} {self.first_name} {self.middle_name} {self.email} {self.phone}'
 
-
+def get_image_path(instance, file):
+    return f'media/pereval-{instance}/{file}'
 class Pereval(models.Model):
     objects = None
     beauty_title = models.CharField(max_length=255, blank=True, verbose_name='Префикс')
@@ -65,4 +67,6 @@ class Coords(models.Model):
 
     def __str__(self):
         return f'{self.latitude} {self.longitude} {self.height}'
+
+
 
