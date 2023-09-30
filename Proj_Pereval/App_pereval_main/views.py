@@ -7,7 +7,9 @@ from .models import *
 from .serializers import PerevalSerializer
 
 
-class SubmitData(mixins.CreateModelMixin, mixins.ListModelMixin, generics.GenericAPIView):
+class SubmitData(mixins.CreateModelMixin, mixins.ListModelMixin,
+                 mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
+                 generics.GenericAPIView):
     queryset = Pereval.objects.all()
     serializer_class = PerevalSerializer
     filter_backends = [DjangoFilterBackend]
@@ -25,3 +27,13 @@ class SubmitData(mixins.CreateModelMixin, mixins.ListModelMixin, generics.Generi
             return Response({'status': status.HTTP_400_BAD_REQUEST, 'message': serializer.errors})
         if status.HTTP_500_INTERNAL_SERVER_ERROR:
             return Response({'status': status.HTTP_500_INTERNAL_SERVER_ERROR, 'message': serializer.errors})
+
+    def patch(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = PerevalSerializer(instance=instance, data=request.data, partial=True)
+        if serializer.is_valid():
+            if instance.status != 'new':
+                raise ValidationError(f'Статус данных изменился на: {instance.status}. Редактирование запрещено')
+            serializer.save()
+            return Response({'state': 1, 'message': 'Данные успешно отредактированы'})
+        return Response({'state': 0, 'message': serializer.errors})
