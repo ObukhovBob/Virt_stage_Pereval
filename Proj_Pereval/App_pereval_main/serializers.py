@@ -26,7 +26,7 @@ class CoordsSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class PerevalSerializer(serializers.ModelSerializer):
+class PerevalSerializer(WritableNestedModelSerializer):
     user = UsersSerializer()
     images = ImagesSerializer()
     coordinates = CoordsSerializer()
@@ -37,6 +37,19 @@ class PerevalSerializer(serializers.ModelSerializer):
                   'coordinates',
                   'user',
                   'images']
+
+    def validate(self, data):
+        user_data = data.get('user')
+        user = self.instance.user
+        if user_data is not None:
+
+            if user.first_name != user_data.get('first_name') \
+                    or user.last_name != user_data.get('last_name') \
+                    or user.middle_name != user_data.get('middle_name') \
+                    or user.email != user_data.get('email') \
+                    or user.phone != user_data.get('phone'):
+                raise ValidationError({'message': 'Редактирование пользовательских данных запрещено'})
+            return data
 
     def create(self, validated_data, **kwargs):
         user_data = validated_data.pop('user')
@@ -70,3 +83,5 @@ class PerevalSerializer(serializers.ModelSerializer):
                                   )
         pereval.save()
         return pereval
+
+
