@@ -4,7 +4,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework import viewsets
 from .models import *
-from .serializers import PerevalSerializer
+from .serializers import PerevalSerializer, PerevalNested
 
 
 class SubmitData(mixins.CreateModelMixin, mixins.ListModelMixin,
@@ -28,9 +28,17 @@ class SubmitData(mixins.CreateModelMixin, mixins.ListModelMixin,
         if status.HTTP_500_INTERNAL_SERVER_ERROR:
             return Response({'status': status.HTTP_500_INTERNAL_SERVER_ERROR, 'message': serializer.errors})
 
+
+class PatchData(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, generics.GenericAPIView):
+    queryset = Pereval.objects.all()
+    serializer_class = PerevalNested
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
     def patch(self, request, *args, **kwargs):
         instance = self.get_object()
-        serializer = PerevalSerializer(instance=instance, data=request.data, partial=True)
+        serializer = PerevalNested(instance=instance, data=request.data, partial=True)
         if serializer.is_valid():
             if instance.status != 'new':
                 raise ValidationError(f'Статус данных изменился на: {instance.status}. Редактирование запрещено')
